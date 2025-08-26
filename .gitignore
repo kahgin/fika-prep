@@ -1,0 +1,11 @@
+# Ignore data directories
+sg/
+output/
+*.txt
+
+# Python build artifacts
+*.egg-info/
+build/
+
+# Virtual environments
+.venv/
