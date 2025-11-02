@@ -1,7 +1,7 @@
 # Ignore data directories
 sg/
 output/
-*.txt
+text/
 
 # Python build artifacts
 *.egg-info/

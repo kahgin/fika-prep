@@ -1,23 +1,26 @@
 VENV = .venv
-PYTHON = python3
 
-$(VENV)/bin/activate: pyproject.toml
-	$(PYTHON) -m venv $(VENV)
-	@echo "Virtual environment created."
+all: sync
 
-all: install
+venv:
+	@uv venv --clear $(VENV)
 
-venv: $(VENV)/bin/activate
+sync: venv
+	@uv lock
+	@uv sync 
 
-install: venv
-	@$(VENV)/bin/pip install --upgrade pip setuptools wheel
-	@$(VENV)/bin/pip install .
+sync-prod: venv
+	@uv lock
+	@uv sync --no-dev
 
-upgrade:
-	@$(VENV)/bin/pip install --upgrade pip setuptools wheel
-	@$(VENV)/bin/pip install --upgrade .
+update: venv
+	@uv lock --upgrade
+	@uv sync 
 
 clean:
-	rm -rf build/ src/*.egg-info/ 
+	@rm -rf build/ src/*.egg-info/ cache/
 
-.PHONY: all venv install upgrade clean
+upload:
+	@python src/upload_pois_to_supabase.py
+
+.PHONY: all venv sync sync-prod update clean cleandist upload
