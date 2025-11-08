@@ -2,6 +2,7 @@
 sg/
 output/
 text/
+geojson/
 
 # Python build artifacts
 *.egg-info/
@@ -9,3 +10,4 @@ build/
 
 # Virtual environments
 .venv/
+.env

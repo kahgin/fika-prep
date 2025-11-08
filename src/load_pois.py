@@ -59,7 +59,7 @@ def prepare_row(row):
 
         # Boolean
         'kids_friendly': bool(row['kids_friendly']) if pd.notna(row['kids_friendly']) else False,
-        'dogs_friendly': bool(row['dogs_friendly']) if pd.notna(row['dogs_friendly']) else False,
+        'pets_friendly': bool(row['pets_friendly']) if pd.notna(row['pets_friendly']) else False,
         'wheelchair_rental': bool(row['wheelchair_rental']) if pd.notna(row['wheelchair_rental']) else False,
         'wheelchair_accessible_car_park': bool(row['wheelchair_accessible_car_park']) if pd.notna(row['wheelchair_accessible_car_park']) else False,
         'wheelchair_accessible_entrance': bool(row['wheelchair_accessible_entrance']) if pd.notna(row['wheelchair_accessible_entrance']) else False,
@@ -69,8 +69,8 @@ def prepare_row(row):
         'vegan_options': bool(row['vegan_options']) if pd.notna(row['vegan_options']) else False,
         'vegetarian_options': bool(row['vegetarian_options']) if pd.notna(row['vegetarian_options']) else False,
         'reservations_required': bool(row['reservations_required']) if pd.notna(row['reservations_required']) else False,
-        'hiking': bool(row['hiking']) if pd.notna(row['hiking']) else False,
-        'cycling': bool(row['cycling']) if pd.notna(row['cycling']) else False,
+        # 'hiking': bool(row['hiking']) if pd.notna(row['hiking']) else False,
+        # 'cycling': bool(row['cycling']) if pd.notna(row['cycling']) else False,
     }
 
 BATCH_SIZE = 1000

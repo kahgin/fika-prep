@@ -7,8 +7,8 @@ from shapely.wkb import dumps as wkb_dumps, loads as wkb_loads
 load_dotenv()
 sb = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"])
 
-SINGAPORE_COUNTRY_GEOJSON = "singapore.geojson"
-PLANNING_AREAS_GEOJSON   = "MasterPlan2019PlanningAreaBoundaryNoSea.geojson"
+SINGAPORE_COUNTRY_GEOJSON = "geojson/singapore.geojson"
+PLANNING_AREAS_GEOJSON   = "geojson/MasterPlan2019PlanningAreaBoundaryNoSea.geojson"
 
 def to_2d_multipolygon(geom_dict):
     g = shape(geom_dict)

@@ -21,6 +21,9 @@ clean:
 	@rm -rf build/ src/*.egg-info/ cache/
 
 upload:
-	@python src/upload_pois_to_supabase.py
+	@python src/load_themes.py
+	@python src/load_roles.py
+	@python src/load_pois.py
+	@python src/load_polygon.py
 
-.PHONY: all venv sync sync-prod update clean cleandist upload
+.PHONY: all venv sync sync-prod update clean upload

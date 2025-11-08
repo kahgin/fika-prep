@@ -21,7 +21,7 @@ gdf2 = gpd.GeoDataFrame({"name": [place]}, geometry=[geom], crs=4326)
 geojson = json.loads(gdf2.to_json())
 
 # 4. Save
-with open("singapore.geojson", "w") as f:
+with open("geojson/singapore.geojson", "w") as f:
     json.dump(geojson, f)
 
-print("Saved singapore.geojson")
+print("Saved geojson/singapore.geojson")

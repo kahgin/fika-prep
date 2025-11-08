@@ -1,18 +1,13 @@
-import os
+import os, glob
 from dotenv import load_dotenv
 from supabase import create_client
 
 load_dotenv()
 sb = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"])
 
-CANDIDATES = [
-    "text/attractions",
-]
-THEMES_DIR = next((p for p in CANDIDATES if os.path.isdir(p)), None)
-if THEMES_DIR is None:
-    raise SystemExit("No themes directory found. Create one of: " + ", ".join(CANDIDATES))
+THEMES_DIR = "text/attractions"
 
-EXPECTED_KEYS = [
+THEME_KEYS = [
     "religious",
     "adventure",
     "art_craft",
@@ -25,39 +20,29 @@ EXPECTED_KEYS = [
     "food_and_drink",
 ]
 
-DISPLAY_NAME = {
-    "religious": "Religious Sites",
-    "adventure": "Adventure",
-    "art_craft": "Arts & Crafts",
-    "family": "Family Attractions",
-    "nature": "Nature & Parks",
-    "nightlife": "Nightlife",
-    "relax": "Relax & Leisure",
-    "shopping": "Shopping",
-    "cultural_history": "Cultural & History",
-    "food_and_drink": "Food & Culinary",
-}
-
 def read_tokens(path):
     with open(path, "r", encoding="utf-8") as f:
         return [ln.strip().lower() for ln in f if ln.strip()]
 
-payloads = []
-for key in EXPECTED_KEYS:
+rows = []
+for key in THEME_KEYS:
     fp = os.path.join(THEMES_DIR, f"{key}.txt")
     if not os.path.exists(fp):
         print(f"SKIP: {fp} not found")
         continue
     cats = read_tokens(fp)
-    payloads.append({
-        "key": key,
-        "display_name": DISPLAY_NAME.get(key, key.replace("_"," ").title()),
-        "category_whitelist": cats,
-        "category_weights": None,
-    })
+    rows.extend({"theme": key, "category": c} for c in cats)
 
-if not payloads:
-    raise SystemExit("No theme files loaded. Check folder and filenames.")
+# de-dup
+pairs = {(r["theme"], r["category"]) for r in rows}
+rows = [{"theme": t, "category": c} for (t, c) in sorted(pairs)]
+print("to upsert:", len(rows))
 
-sb.table("themes").upsert(payloads, on_conflict="key").execute()
-print(f"Upserted/updated {len(payloads)} themes")
+# upsert in chunks on composite key (theme, category)
+for i in range(0, len(rows), 1000):
+    chunk = rows[i:i+1000]
+    sb.table("theme_category_map").upsert(
+        chunk, on_conflict="theme,category"
+    ).execute()
+
+print("✅ done")
