@@ -1,4 +1,4 @@
-import os, glob
+import os
 from dotenv import load_dotenv
 from supabase import create_client
 
@@ -8,16 +8,16 @@ sb = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"])
 THEMES_DIR = "text/attractions"
 
 THEME_KEYS = [
-    "religious",
+    "religious_sites",
     "adventure",
-    "art_craft",
+    "art_museums",
     "family",
     "nature",
     "nightlife",
     "relax",
     "shopping",
     "cultural_history",
-    "food_and_drink",
+    "food_culinary",
 ]
 
 def read_tokens(path):
@@ -33,16 +33,12 @@ for key in THEME_KEYS:
     cats = read_tokens(fp)
     rows.extend({"theme": key, "category": c} for c in cats)
 
-# de-dup
 pairs = {(r["theme"], r["category"]) for r in rows}
 rows = [{"theme": t, "category": c} for (t, c) in sorted(pairs)]
 print("to upsert:", len(rows))
 
-# upsert in chunks on composite key (theme, category)
 for i in range(0, len(rows), 1000):
     chunk = rows[i:i+1000]
-    sb.table("theme_category_map").upsert(
-        chunk, on_conflict="theme,category"
-    ).execute()
+    sb.table("theme_category_map").upsert(chunk, on_conflict="theme,category").execute()
 
 print("✅ done")

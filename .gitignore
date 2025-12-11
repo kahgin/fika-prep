@@ -1,5 +1,5 @@
 # Ignore data directories
-sg/
+data/
 output/
 text/
 geojson/
@@ -8,6 +8,6 @@ geojson/
 *.egg-info/
 build/
 
-# Virtual environments
+# Environments
 .venv/
 .env
