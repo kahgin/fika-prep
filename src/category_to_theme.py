@@ -86,7 +86,7 @@ def llm_assign_batch(labels: list[str]) -> dict[str, list[str]]:
         "attractions/food_culinary": "Desserts, snacks, drinks only (ice cream, tea, boba, juice, chocolatier). NOT full meals.",
         "attractions/adventure": "Thrill activities: zipline, ATV, go-kart, bungee, rafting, diving, paragliding, rock climbing, caves.",
         "attractions/art_museums": "Museums, art galleries, handicraft/batik/pottery workshops, artisan studios.",
-        "attractions/family": "Theme parks, water parks, playgrounds, zoos, aquariums, trampoline parks, kid activities.",
+        "attractions/family": "Theme parks, water parks, zoos, kid activities.",
         "attractions/cultural_history": "Museums, heritage sites, forts, monuments, palaces, street art, theatres.",
         "attractions/nature": "Parks, gardens, forests, waterfalls, mountains, beaches, islands, lakes, trails.",
         "attractions/nightlife": "Bars, pubs, nightclubs, karaoke, lounges, live music, cocktail bars, rooftops.",

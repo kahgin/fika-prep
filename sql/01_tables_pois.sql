@@ -90,6 +90,10 @@ CREATE INDEX idx_crm_role ON category_role_map (role);
 
 CREATE OR REPLACE FUNCTION pois_set_roles()
 RETURNS trigger AS $$
+DECLARE
+  computed_roles poi_role[];
+  has_accommodation boolean;
+  has_meal boolean;
 BEGIN
   IF NEW.categories IS NULL OR array_length(NEW.categories,1) IS NULL THEN
     NEW.poi_roles := ARRAY[]::poi_role[];
@@ -102,7 +106,22 @@ BEGIN
       ),
       ARRAY[]::poi_role[]
     )
-    INTO NEW.poi_roles;
+    INTO computed_roles;
+    
+    -- Check if both accommodation and meal roles exist
+    has_accommodation := 'accommodation'::poi_role = ANY(computed_roles);
+    has_meal := 'meal'::poi_role = ANY(computed_roles);
+    
+    -- If both exist, remove meal role
+    IF has_accommodation AND has_meal THEN
+      computed_roles := ARRAY(
+        SELECT role 
+        FROM unnest(computed_roles) AS role 
+        WHERE role != 'meal'::poi_role
+      );
+    END IF;
+    
+    NEW.poi_roles := computed_roles;
   END IF;
   RETURN NEW;
 END;

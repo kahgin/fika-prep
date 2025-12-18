@@ -1,8 +1,6 @@
 # Ignore data directories
 data/
 output/
-text/
-geojson/
 
 # Python build artifacts
 *.egg-info/

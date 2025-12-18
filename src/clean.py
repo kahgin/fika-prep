@@ -13,12 +13,11 @@ pd.set_option('display.max_colwidth', None)
 
 os.chdir('/home/kahgin/fika/fika-prep')
 
-# ============================================================================
 # CONSTANTS
-# ============================================================================
+
 INPUT_DIR = 'data/map'
 OUTPUT_DIR = 'output'
-TEXT_DIR = 'text'
+TEXT_DIR = 'data/text'
 
 _UNICODE_REPLACEMENTS = {'\u202f': ' ', '\u2013': '-', '\u0026': '&'}
 _PRICE_SYMBOLS = {'$': 1, '$$': 2, '$$$': 3, '$$$$': 4}
@@ -33,19 +32,14 @@ _DROP_COLUMNS = [
     'cid', 'status', 'reviews_link', 'thumbnail', 'data_id', 'reservations',
     'order_online', 'menu', 'owner', 'user_reviews', 'user_reviews_extended', 'emails'
 ]
-
 # _DROP_COLUMNS_EXTENDED = ['plus_code', 'timezone', 'complete_address']
 
-# ============================================================================
-# CACHED REGEX PATTERNS (Refactor #6)
-# ============================================================================
+# CACHED REGEX PATTERNS
 _WHITESPACE_PATTERN = re.compile(r"\s+")
 _PHONE_CLEANUP_PATTERN = re.compile(r'[\s\-\(\)\.\/]')
 _PRICE_DIGITS_PATTERN = re.compile(r'\d+')
 
-# ============================================================================
 # TEXT NORMALIZATION UTILITIES
-# ============================================================================
 def norm_token(s: str) -> str:
     """Normalize text to slug format"""
     s = _WHITESPACE_PATTERN.sub(" ", s.strip().lower().replace("&", " and "))
@@ -104,9 +98,8 @@ def map_price(price):
     if mid <= 100: return 3
     return 4
 
-# ============================================================================
 # CATEGORY PROCESSING UTILITIES
-# ============================================================================
+
 def categories_to_tokens(val):
     """Parse categories from various formats to normalized tokens"""
     if val is None or (isinstance(val, float) and pd.isna(val)):
@@ -180,14 +173,14 @@ def filter_exclude_categories(df, exclude_file='../text/exclude.txt'):
         
         # Rule 1: If first category is excluded, mark for removal
         if toks[0] in exclude:
-            return None  # Signal to drop this row
+            return None
         
         # Rule 2: Remove excluded categories from non-first positions
         filtered_toks = [t for t in toks if t not in exclude]
         
         # Rule 3: If list becomes empty after filtering, mark for removal
         if not filtered_toks:
-            return None  # Signal to drop this row
+            return None
         
         return json.dumps(filtered_toks)
 
@@ -195,9 +188,8 @@ def filter_exclude_categories(df, exclude_file='../text/exclude.txt'):
     df = df[df['categories'].notna()].reset_index(drop=True)
     return df
 
-# ============================================================================
-# IMAGE PROCESSING UTILITIES (Refactor #4)
-# ============================================================================
+# IMAGE PROCESSING UTILITIES
+
 def process_images(images):
     """Combined image processing: remove street view, extract URLs, scale resolution"""
     if not isinstance(images, (list, str)):
@@ -229,9 +221,8 @@ def process_images(images):
     # Step 3: Scale resolution
     return [link.split("=w")[0] for link in urls if isinstance(link, str)]
 
-# ============================================================================
-# ABOUT FIELD UTILITIES (Refactor #5)
-# ============================================================================
+# ABOUT FIELD UTILITIES
+
 def remove_about(row, category_name):
     """Remove category block from 'about' JSON"""
     if pd.isna(row) or pd.isna(category_name):
@@ -241,7 +232,7 @@ def remove_about(row, category_name):
     return json.dumps(filtered) if isinstance(row, str) else filtered
 
 def update_flag_unified(row, flag_col, source, keywords=None, target_categories=None, about_col='about'):
-    """Unified flag update from either 'about' options or categories (Refactor #2)"""
+    """Unified flag update from either 'about' options or categories"""
     if row.get(flag_col, False):
         return True
     
@@ -271,9 +262,8 @@ def update_flag_unified(row, flag_col, source, keywords=None, target_categories=
     
     return False
 
-# ============================================================================
 # FILE I/O UTILITIES
-# ============================================================================
+
 def to_list(s):
     """Convert string/list to Python list"""
     if isinstance(s, list):
@@ -318,7 +308,7 @@ def save_categories(df, exclude_keyword=None, filename='../text/categories.txt')
             f.write(f"{category}\n")
 
 def save_about_field(df, filename=os.path.join(TEXT_DIR, 'about_field.txt')):
-    """Export 'about' field structure to text file (Refactor #5)"""
+    """Export 'about' field structure to text file"""
     from collections import defaultdict
     grouped = defaultdict(set)
     
@@ -343,9 +333,7 @@ def save_about_field(df, filename=os.path.join(TEXT_DIR, 'about_field.txt')):
                 f.write(f"- {oname}\n")
             f.write("\n")
 
-# ============================================================================
 # DATAFRAME OPERATIONS
-# ============================================================================
 def combine_dataframes(dfs):
     """Concat dataframes, dedup by name, print dup count"""
     combined = pd.concat(dfs, ignore_index=True)
@@ -363,10 +351,10 @@ def clean_data(filename):
         df = df.replace(old, new, regex=True)
 
 
-    # Filter Singapore rows and apply quality thresholds
+    # Filter rows and apply quality thresholds
     df = df[
         (df['complete_address'].astype(str).str.contains('"country":"SG"', na=False) | df['complete_address'].astype(str).str.contains('"country":"MY"', na=False)) &
-        (df['review_count'].astype(int) >= 10) &
+        (df['review_count'].astype(int) >= 50) &
         (df['review_rating'].astype(float) >= 2.5)
     ]
 
@@ -384,17 +372,13 @@ def clean_data(filename):
 
     return df
 
-# ============================================================================
-# MAIN PROCESSING FUNCTIONS (Refactor #7)
-# ============================================================================
+# MAIN PROCESSING FUNCTIONS
 def process_poi_data():
-    """Process POI data from CSV files (Refactor #7)"""
+    """Process POI data from CSV files"""
     # Read and clean all CSV files
     csv_files = glob.glob(os.path.join(INPUT_DIR, "**", "*.csv"), recursive=True)
     dataframes = [clean_data(file) for file in csv_files]
     pois = combine_dataframes(dataframes)
-
-    # print(pois.dtypes)
 
     # Map price range to 1-4 scale
     pois['price_range'] = pois['price_range'].apply(map_price)
@@ -448,7 +432,6 @@ def process_poi_data():
         pois['about'] = pois['about'].apply(remove_about, category_name=cat_name)
 
     # to_csv(pois, f"{OUTPUT_DIR}/poi.csv")
-
     return pois
 
 def integrate_michelin(pois, michelin_path=os.path.join(OUTPUT_DIR, "michelin.csv")):
@@ -461,6 +444,10 @@ def integrate_michelin(pois, michelin_path=os.path.join(OUTPUT_DIR, "michelin.cs
 
     # Create phone lookup
     michelin_by_phone = michelin.dropna(subset=["phone"]).drop_duplicates(subset=["phone"]).set_index("phone")
+
+    # matched_count = sum(1 for phone in pois["phone"].dropna() if phone in michelin_by_phone.index)
+    # total_michelin = len(michelin_by_phone)
+    # print(f"Michelin match: {matched_count}/{total_michelin} ({matched_count/total_michelin:.1%})")
 
     # Fill missing price_level from Michelin data
     def get_michelin_field(row, field, fallback_col):
@@ -484,7 +471,7 @@ def integrate_michelin(pois, michelin_path=os.path.join(OUTPUT_DIR, "michelin.cs
     return pois
 
 def manage_categories():
-    """Category management: compute unique categories not in any group (Refactor #7)"""
+    """Category management: compute unique categories not in any group"""
     TEXT_DIR_PATH = Path("text")
     ATTRACTIONS_DIR = TEXT_DIR_PATH / "attractions"
     ATTRACTIONS_DIR.mkdir(parents=True, exist_ok=True)
@@ -525,21 +512,11 @@ def manage_categories():
         write_set(out_path, items)
 
 def main():
-    """Main execution entry point (Refactor #7)"""
-    # Process POI data
+    """Main execution entry point"""
     pois = process_poi_data()
-    
-    # Integrate Michelin data
     pois = integrate_michelin(pois)
-    
-    # Save final POI data
     to_csv(pois, os.path.join(OUTPUT_DIR, "poi.csv"))
-    
-    # Manage categories
     manage_categories()
 
-# ============================================================================
-# EXECUTION
-# ============================================================================
 if __name__ == "__main__":
     main()

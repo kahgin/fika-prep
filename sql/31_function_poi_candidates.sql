@@ -27,7 +27,7 @@ RETURNS TABLE (
   name text,
   categories text[],
   themes theme_key[],
-  poi_roles poi_role[],
+  roles poi_role[],
   open_hours jsonb,
   review_count int,
   review_rating numeric,
@@ -98,6 +98,9 @@ base AS (
     AND p.review_count >= p_min_reviews
     AND (
         'accommodation' = ANY(p.poi_roles)
+        OR 'meal' = ANY(p.poi_roles)  -- Meals don't need to match themes
+        OR p_themes IS NULL
+        OR array_length(p_themes, 1) IS NULL  -- Empty themes = return all attractions
         OR EXISTS (
             SELECT 1
             FROM unnest(p.categories) AS c
@@ -143,7 +146,20 @@ scored AS (
     CASE WHEN (SELECT g FROM seed) IS NOT NULL
          THEN ST_Distance(b.geom::geography, (SELECT g FROM seed)::geography)
          ELSE NULL::double precision
-    END AS distance_m
+    END AS distance_m,
+    -- Theme match score: prioritize attractions matching user themes
+    CASE
+      WHEN 'attraction' = ANY(b.poi_roles)
+           AND p_themes IS NOT NULL
+           AND array_length(p_themes, 1) > 0
+           AND b.themes && p_themes::theme_key[]
+      THEN 1
+      ELSE 0
+    END AS theme_match,
+    -- Quality score combining rating and reviews (similar to MAUT popularity_score)
+    -- rating (0-5) contributes 20%, review_count (log-scaled) contributes 80%
+    COALESCE(b.review_rating / 5.0, 0) * 0.2 +
+    LEAST(LN(GREATEST(b.review_count, 1)) / LN(100000), 1.0) * 0.8 AS quality_score
   FROM base b
   LEFT JOIN admin_areas aa ON aa.id = b.area_id
 ),
@@ -154,9 +170,9 @@ ranked AS (
     ROW_NUMBER() OVER (
       PARTITION BY r.role, s.area_id
       ORDER BY
-        CASE WHEN s.distance_m IS NULL THEN 0 ELSE s.distance_m END ASC,
-        s.review_rating DESC,
-        s.review_count DESC
+        s.theme_match DESC,
+        s.quality_score DESC,  -- Use quality score (rating + reviews)
+        CASE WHEN s.distance_m IS NULL THEN 1e9 ELSE s.distance_m END ASC
     ) AS rn_area
   FROM scored s
   JOIN unnest(p_roles) AS r(role) ON r.role::text = ANY (s.poi_roles::text[])
@@ -169,9 +185,9 @@ role_quota AS (
          ROW_NUMBER() OVER (
            PARTITION BY role_pick
            ORDER BY
-             CASE WHEN distance_m IS NULL THEN 0 ELSE distance_m END ASC,
-             review_rating DESC,
-             review_count DESC
+             theme_match DESC,
+             quality_score DESC,  -- Use quality score (rating + reviews)
+             CASE WHEN distance_m IS NULL THEN 1e9 ELSE distance_m END ASC
          ) AS rn_role
   FROM capped_area
 ),

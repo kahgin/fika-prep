@@ -9,10 +9,9 @@ from shapely.wkb import dumps as wkb_dumps, loads as wkb_loads
 load_dotenv()
 sb = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"])
 
-SINGAPORE_COUNTRY_GEOJSON = "geojson/singapore.geojson"
-MALAYSIA_COUNTRY_GEOJSON = "geojson/malaysia.geojson"
-MALAYSIA_STATE_GEOJSON = "geojson/malaysia_states.geojson"
-# PLANNING_AREAS_GEOJSON = "geojson/MasterPlan2019PlanningAreaBoundaryNoSea.geojson"
+SINGAPORE_COUNTRY_GEOJSON = "data/geojson/singapore.geojson"
+MALAYSIA_COUNTRY_GEOJSON = "data/geojson/malaysia.geojson"
+MALAYSIA_STATE_GEOJSON = "data/geojson/malaysia_states.geojson"
 
 def to_2d_multipolygon(geom_dict):
     g = shape(geom_dict)
@@ -128,39 +127,6 @@ def upsert_malaysia_states():
     
     print(f"✅ Malaysia states done. ok={ok} fail={fail}")
 
-# def upsert_planning_areas():
-#     """Insert Singapore planning areas"""
-#     with open(PLANNING_AREAS_GEOJSON, "r", encoding="utf-8") as f:
-#         fc = json.load(f)
-#     feats = fc["features"]
-#     print(f"Found {len(feats)} planning area features")
-#     
-#     ok = fail = 0
-#     for ft in feats:
-#         try:
-#             name = extract_planning_area_name(ft.get("properties", {}))
-#             geom_2d = drop_z_coords(ft["geometry"])
-#             geom_2dmp = to_2d_multipolygon(geom_2d)
-#             
-#             sb.rpc("rpc_upsert_admin_area_geojson", {
-#                 "p_name": name,
-#                 "p_country_iso2": "SG",
-#                 "p_kind": "planning_area",
-#                 "p_admin_level": 6,
-#                 "p_geom_geojson": geom_2dmp,
-#                 "p_parent_id": None,  # Will be set later via ST_Intersects
-#             }).execute()
-#             
-#             print(f"  ✓ {name}")
-#             ok += 1
-#             
-#         except Exception as e:
-#             fail += 1
-#             name = name if 'name' in locals() else '?'
-#             print(f"  ✗ FAILED: {name} - {e}")
-#     
-#     print(f"✅ Planning areas done. ok={ok} fail={fail}")
-
 if __name__ == "__main__":
     
     # 1. Insert countries
@@ -169,6 +135,3 @@ if __name__ == "__main__":
     
     # 2. Insert Malaysian states
     upsert_malaysia_states()
-    
-    # 3. Insert Singapore planning areas
-    # upsert_planning_areas()

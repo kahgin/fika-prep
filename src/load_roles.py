@@ -13,8 +13,6 @@ def norm_token(s: str) -> str:
     s = s.strip().lower()
     s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
     s = s.replace("&", " and ")
-    # s = re.sub(r"[^a-z0-9]+", "_", s)
-    # s = re.sub(r"_+", "_", s).strip("_")
     return s
 
 def read_list(path):

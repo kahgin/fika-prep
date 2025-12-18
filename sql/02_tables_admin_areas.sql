@@ -15,13 +15,11 @@ DROP INDEX IF EXISTS admin_areas_geom_gist;
 DROP INDEX IF EXISTS admin_areas_parent_idx;
 DROP INDEX IF EXISTS admin_areas_country_idx;
 DROP INDEX IF EXISTS admin_areas_kind_idx;
-DROP INDEX IF EXISTS admin_areas_trgm;
 
 CREATE INDEX IF NOT EXISTS admin_areas_geom_gist ON admin_areas USING GIST (geom);
 CREATE INDEX IF NOT EXISTS admin_areas_parent_idx ON admin_areas(parent_id);
 CREATE INDEX IF NOT EXISTS admin_areas_country_idx ON admin_areas(country_iso2);
 CREATE INDEX IF NOT EXISTS admin_areas_kind_idx ON admin_areas(kind);
-CREATE INDEX IF NOT EXISTS admin_areas_trgm ON admin_areas USING GIN (lower(name) gin_trgm_ops);
 
 DROP FUNCTION IF EXISTS rpc_upsert_admin_area_geojson;
 
