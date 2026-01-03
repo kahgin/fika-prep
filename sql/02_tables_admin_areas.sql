@@ -34,6 +34,7 @@ CREATE OR REPLACE FUNCTION rpc_upsert_admin_area_geojson(
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_geom geometry;

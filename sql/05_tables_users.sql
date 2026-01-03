@@ -1,6 +1,4 @@
--- Users table for authentication
--- Using Supabase Auth compatible structure
-
+-- Drop existing users table if exists
 DROP TABLE IF EXISTS users CASCADE;
 
 CREATE TABLE users (
@@ -33,12 +31,15 @@ CREATE INDEX idx_users_created_at ON users(created_at DESC);
 
 -- Trigger to auto-update updated_at
 CREATE OR REPLACE FUNCTION update_users_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS trg_users_updated_at ON users;
 CREATE TRIGGER trg_users_updated_at
@@ -74,7 +75,7 @@ DROP POLICY IF EXISTS "Allow public insert" ON itineraries;
 DROP POLICY IF EXISTS "Allow public update" ON itineraries;
 DROP POLICY IF EXISTS "Allow public delete" ON itineraries;
 
--- New policies: Users can only access their own itineraries
+-- Users can only access their own itineraries
 -- For now, allow all operations but the backend will filter by user_id
 CREATE POLICY "Users can view own itineraries" ON itineraries 
   FOR SELECT USING (true);

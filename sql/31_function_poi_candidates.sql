@@ -49,7 +49,10 @@ RETURNS TABLE (
   area_name text,
   distance_m double precision
 )
-LANGUAGE sql STABLE AS
+LANGUAGE sql
+STABLE
+SET search_path = public
+AS
 $$
 WITH dest AS (
   SELECT id, kind, geom

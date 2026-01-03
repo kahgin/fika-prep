@@ -26,6 +26,8 @@ phase-one:
 	@$(PYTHON) src/run_sql.py sql/00_extensions_and_types.sql
 	@$(PYTHON) src/run_sql.py sql/01_tables_pois.sql
 	@$(PYTHON) src/run_sql.py sql/02_tables_admin_areas.sql
+	@$(PYTHON) src/run_sql.py sql/04_tables_itineraries.sql
+	@$(PYTHON) src/run_sql.py sql/05_tables_users.sql
 
 phase-two:
 	@$(PYTHON) src/load_themes.py

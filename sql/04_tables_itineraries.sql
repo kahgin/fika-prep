@@ -36,12 +36,15 @@ CREATE INDEX idx_itineraries_destinations ON itineraries USING GIN (destinations
 
 -- Trigger to auto-update updated_at
 CREATE OR REPLACE FUNCTION update_itineraries_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS trg_itineraries_updated_at ON itineraries;
 CREATE TRIGGER trg_itineraries_updated_at
@@ -79,6 +82,7 @@ CREATE OR REPLACE FUNCTION rpc_create_itinerary(
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_id uuid;
@@ -120,6 +124,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 STABLE
+SET search_path = public
 AS $$
 BEGIN
   RETURN QUERY
@@ -163,6 +168,7 @@ CREATE OR REPLACE FUNCTION rpc_update_itinerary(
 RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 BEGIN
   UPDATE itineraries
@@ -190,6 +196,7 @@ CREATE OR REPLACE FUNCTION rpc_delete_itinerary(p_id uuid)
 RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 BEGIN
   DELETE FROM itineraries WHERE id = p_id;
@@ -217,6 +224,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 STABLE
+SET search_path = public
 AS $$
 DECLARE
   v_total_count bigint;
@@ -264,6 +272,7 @@ CREATE OR REPLACE FUNCTION rpc_upsert_itinerary(
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 BEGIN
   INSERT INTO itineraries (

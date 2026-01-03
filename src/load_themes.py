@@ -5,7 +5,7 @@ from supabase import create_client
 load_dotenv()
 sb = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"])
 
-THEMES_DIR = "text/attractions"
+THEMES_DIR = "data/text/attractions"
 
 THEME_KEYS = [
     "religious_sites",

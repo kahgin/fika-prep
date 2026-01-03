@@ -1,21 +1,4 @@
--- ============================================================================
--- Itinerary SQL Functions for Supabase
--- ============================================================================
--- These functions handle itinerary CRUD with proper ownership verification.
--- All functions follow the rpc_<action>_<entity> naming convention.
---
--- Functions:
---   rpc_get_itinerary_for_user    - Get itinerary with ownership check
---   rpc_update_itinerary_meta     - Update meta fields with ownership check
---   rpc_update_itinerary_plan     - Update plan with ownership check
---   rpc_claim_itinerary           - Claim an orphaned itinerary
---   rpc_delete_itinerary_for_user - Soft-delete with ownership check
---   rpc_list_user_itineraries     - List user's itineraries with pagination
---
--- Upload: python src/run_sql.py sql/itinerary_functions.sql
--- ============================================================================
-
--- Drop old function names if they exist (cleanup)
+-- Drop old function names
 DROP FUNCTION IF EXISTS rpc_get_itinerary_for_user;
 DROP FUNCTION IF EXISTS rpc_update_itinerary_meta;
 DROP FUNCTION IF EXISTS rpc_update_itinerary_plan;
@@ -61,6 +44,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
     v_itinerary RECORD;
@@ -139,6 +123,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
     v_owner UUID;
@@ -194,6 +179,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
     v_owner UUID;
@@ -240,6 +226,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
     v_owner UUID;
@@ -296,6 +283,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
     v_owner UUID;
@@ -349,6 +337,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
     v_total BIGINT;
@@ -380,9 +369,7 @@ END;
 $$;
 
 
--- ============================================================================
 -- Grant execute permissions
--- ============================================================================
 GRANT EXECUTE ON FUNCTION rpc_get_itinerary_for_user TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION rpc_update_itinerary_meta TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION rpc_update_itinerary_plan TO authenticated, anon;

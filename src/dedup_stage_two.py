@@ -35,7 +35,6 @@ def load_removal_list(file_path):
         return []
     
     with open(file_path, 'r', encoding='utf-8') as f:
-        # Strip whitespace and ignore empty lines
         names = [line.strip() for line in f if line.strip()]
     
     return names

@@ -48,7 +48,10 @@ CREATE TABLE pois (
 );
 
 CREATE OR REPLACE FUNCTION pois_set_geom()
-RETURNS trigger AS $$
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
   IF NEW.longitude IS NOT NULL AND NEW.latitude IS NOT NULL THEN
     NEW.geom := ST_SetSRID(ST_MakePoint(NEW.longitude, NEW.latitude), 4326)::geography;
@@ -57,7 +60,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS trg_pois_set_geom ON pois;
 CREATE TRIGGER trg_pois_set_geom
@@ -88,8 +91,17 @@ CREATE TABLE category_role_map (
 CREATE INDEX idx_crm_category ON category_role_map (category);
 CREATE INDEX idx_crm_role ON category_role_map (role);
 
+-- RLS: Public read, service role write (for load_roles.py upserts)
+ALTER TABLE category_role_map ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access" ON category_role_map FOR SELECT USING (true);
+CREATE POLICY "Allow service role full access" ON category_role_map FOR ALL
+  USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+
 CREATE OR REPLACE FUNCTION pois_set_roles()
-RETURNS trigger AS $$
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 DECLARE
   computed_roles poi_role[];
   has_accommodation boolean;
@@ -125,7 +137,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS trg_pois_set_roles ON pois;
 CREATE TRIGGER trg_pois_set_roles
@@ -140,3 +152,9 @@ CREATE TABLE theme_category_map (
 );
 CREATE INDEX idx_tcm_theme ON theme_category_map (theme);
 CREATE INDEX idx_tcm_category ON theme_category_map (category);
+
+-- RLS: Public read, service role write
+ALTER TABLE theme_category_map ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access" ON theme_category_map FOR SELECT USING (true);
+CREATE POLICY "Allow service role full access" ON theme_category_map FOR ALL
+  USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');

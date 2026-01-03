@@ -7,15 +7,6 @@ WHERE child.kind = 'state'
   AND ST_Intersects(child.geom, parent.geom)
   AND child.parent_id IS NULL;
 
--- UPDATE admin_areas child
--- SET parent_id = parent.id
--- FROM admin_areas parent
--- WHERE child.kind = 'planning_area'
---   AND parent.kind = 'country'
---   AND parent.name = 'Singapore'
---   AND parent.country_iso2 = 'SG'
---   AND ST_Intersects(child.geom, parent.geom)
---   AND child.parent_id IS NULL;
 
 ALTER TABLE pois ADD COLUMN IF NOT EXISTS admin_area_id uuid;
 CREATE INDEX IF NOT EXISTS idx_pois_admin_area ON pois(admin_area_id);

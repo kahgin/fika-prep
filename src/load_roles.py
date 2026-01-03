@@ -1,11 +1,10 @@
 import os
 import glob
-import re
 import unicodedata
 from dotenv import load_dotenv
 from supabase import create_client
 
-TEXT_DIR = "text"
+TEXT_DIR = "data/text"
 SYNC_DELETE = False
 ALLOWED_ROLES = {"meal", "accommodation", "attraction"}
 

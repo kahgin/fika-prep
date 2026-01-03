@@ -43,7 +43,11 @@ CREATE OR REPLACE FUNCTION rpc_search_pois(
   vegetarian_options boolean,
 
   total_count bigint
-) LANGUAGE plpgsql STABLE AS $$
+)
+LANGUAGE plpgsql
+STABLE
+SET search_path = public
+AS $$
 DECLARE
   v_dest_id uuid;
   v_dest_kind text;
